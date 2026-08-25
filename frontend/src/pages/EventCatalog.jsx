@@ -34,6 +34,15 @@ const EventCatalog = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Prototype Notice Banner */}
+      <div className="bg-neonGreen/10 border border-neonGreen/30 rounded-xl px-6 py-4 mb-8 flex items-center gap-3">
+        <span className="text-2xl">🚀</span>
+        <p className="text-gray-300 text-sm">
+          This prototype is <span className="text-neonGreen font-bold">fully functional</span> — all features are live and operational. 
+          Check the claims in the <a href="https://github.com/rajsenyadav/Ticket-Booking-System#readme" target="_blank" rel="noopener noreferrer" className="text-neonYellow underline hover:text-yellow-300 font-bold">README</a>.
+        </p>
+      </div>
+
       <h2 className="text-4xl font-extrabold mb-8 text-white">Upcoming Events</h2>
       
       {events.length === 0 && (

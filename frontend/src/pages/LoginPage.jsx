@@ -6,21 +6,30 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(null); // tracks which demo button is loading
+
+  const navigate = useNavigate();
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email || loading) return;
+    setLoading(true);
     try {
         await api.post('/auth/send-otp', { email });
         setOtpSent(true);
-        alert("OTP sent! Please check the backend terminal console to see the 6-digit code.");
+        alert("OTP sent! Check your email for the 6-digit code.");
     } catch (error) {
         alert(error.response?.data?.message || "Failed to send OTP");
+    } finally {
+        setLoading(false);
     }
   };
 
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
+    if (loading) return;
+    setLoading(true);
     try {
         const response = await api.post('/auth/verify-otp', { email, otp });
         localStorage.setItem('token', response.data.token);
@@ -31,12 +40,14 @@ const LoginPage = () => {
         window.location.reload(); // Force Navbar to update
     } catch (error) {
         alert(error.response?.data?.message || "Invalid OTP");
+    } finally {
+        setLoading(false);
     }
   };
 
-  const navigate = useNavigate();
-
   const handleDemoLogin = async (role) => {
+    if (demoLoading) return; // Block all demo buttons while one is loading
+    setDemoLoading(role);
     try {
       const response = await api.post('/auth/demo-login', { role });
       
@@ -52,6 +63,8 @@ const LoginPage = () => {
     } catch (error) {
       console.error(error);
       alert("Failed to connect to backend. Is the Node.js server running?");
+    } finally {
+      setDemoLoading(null);
     }
   };
 
@@ -73,9 +86,10 @@ const LoginPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:border-neonGreen"
                 required
+                disabled={loading}
               />
-              <button type="submit" className="bg-neonGreen text-darker font-bold py-3 rounded-lg hover:bg-green-400 transition">
-                Send 6-Digit Code
+              <button type="submit" disabled={loading} className={`font-bold py-3 rounded-lg transition ${loading ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-neonGreen text-darker hover:bg-green-400'}`}>
+                {loading ? '⏳ Sending OTP...' : 'Send 6-Digit Code'}
               </button>
             </form>
           ) : (
@@ -89,9 +103,10 @@ const LoginPage = () => {
                 className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 text-center tracking-widest text-xl focus:outline-none focus:border-neonGreen"
                 maxLength={6}
                 required
+                disabled={loading}
               />
-              <button type="submit" className="bg-neonGreen text-darker font-bold py-3 rounded-lg hover:bg-green-400 transition">
-                Verify & Login
+              <button type="submit" disabled={loading} className={`font-bold py-3 rounded-lg transition ${loading ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-neonGreen text-darker hover:bg-green-400'}`}>
+                {loading ? '⏳ Verifying...' : 'Verify & Login'}
               </button>
             </form>
           )}
@@ -105,14 +120,14 @@ const LoginPage = () => {
         <div>
           <h3 className="text-neonYellow font-bold mb-4">1-Click Demo Login</h3>
           <div className="flex flex-col gap-3">
-            <button onClick={() => handleDemoLogin('Customer')} className="bg-gray-800 text-white font-bold py-3 rounded-lg hover:bg-gray-700 transition border border-gray-600">
-              Login as Demo Customer
+            <button onClick={() => handleDemoLogin('Customer')} disabled={!!demoLoading} className={`font-bold py-3 rounded-lg transition border ${demoLoading === 'Customer' ? 'bg-gray-600 text-gray-400 cursor-not-allowed border-gray-600' : demoLoading ? 'bg-gray-900 text-gray-600 cursor-not-allowed border-gray-700' : 'bg-gray-800 text-white hover:bg-gray-700 border-gray-600'}`}>
+              {demoLoading === 'Customer' ? '⏳ Logging in...' : 'Login as Demo Customer'}
             </button>
-            <button onClick={() => handleDemoLogin('Organiser')} className="bg-gray-800 text-white font-bold py-3 rounded-lg hover:bg-gray-700 transition border border-gray-600">
-              Login as Demo Organiser
+            <button onClick={() => handleDemoLogin('Organiser')} disabled={!!demoLoading} className={`font-bold py-3 rounded-lg transition border ${demoLoading === 'Organiser' ? 'bg-gray-600 text-gray-400 cursor-not-allowed border-gray-600' : demoLoading ? 'bg-gray-900 text-gray-600 cursor-not-allowed border-gray-700' : 'bg-gray-800 text-white hover:bg-gray-700 border-gray-600'}`}>
+              {demoLoading === 'Organiser' ? '⏳ Logging in...' : 'Login as Demo Organiser'}
             </button>
-            <button onClick={() => handleDemoLogin('Admin')} className="bg-red-900/20 text-red-400 font-bold py-3 rounded-lg hover:bg-red-900/40 transition border border-red-500/50 mt-4">
-              Login as Demo Admin (God Mode)
+            <button onClick={() => handleDemoLogin('Admin')} disabled={!!demoLoading} className={`font-bold py-3 rounded-lg transition border mt-4 ${demoLoading === 'Admin' ? 'bg-gray-600 text-gray-400 cursor-not-allowed border-gray-600' : demoLoading ? 'bg-gray-900 text-gray-600 cursor-not-allowed border-gray-700' : 'bg-red-900/20 text-red-400 hover:bg-red-900/40 border-red-500/50'}`}>
+              {demoLoading === 'Admin' ? '⏳ Logging in...' : 'Login as Demo Admin (God Mode)'}
             </button>
           </div>
         </div>

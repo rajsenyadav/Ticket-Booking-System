@@ -107,7 +107,8 @@ const OrganiserDashboard = () => {
 
         <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Banner Image URL</label>
-            <input type="url" name="bannerImageUrl" required onChange={handleChange} placeholder="https://images.unsplash.com/..." className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-neonGreen" />
+            <input type="url" name="bannerImageUrl" required onChange={handleChange} placeholder="https://images.unsplash.com/photo-xxxxx.jpg" className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white focus:outline-none focus:border-neonGreen" />
+            <p className="text-xs text-gray-500 mt-1">⚠️ Use a direct image link ending in <span className="text-neonYellow">.jpg</span> or <span className="text-neonYellow">.png</span> (e.g. from Unsplash). Regular webpage URLs will not display correctly.</p>
         </div>
 
         <div className="pt-6">
