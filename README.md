@@ -1,4 +1,4 @@
-# MERN-Redis Ticket Booking System
+# Ticket Booking System
 
 A high-performance ticket booking system designed to handle high concurrency, prevent double-bookings, and manage ticket hoarding through an atomic Redis locking mechanism. Built with the MERN stack (MongoDB, Express, React, Node.js) and Redis.
 
