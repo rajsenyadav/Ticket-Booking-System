@@ -1,7 +1,6 @@
 # Ticket Booking System
 
-
-Live link = https://ticket-booking-system-ten-xi.vercel.app/
+🔗 **Live Demo:** [ticket-booking-system-ten-xi.vercel.app](https://ticket-booking-system-ten-xi.vercel.app)
 
 A high-performance ticket booking system designed to handle high concurrency, prevent double-bookings, and manage ticket hoarding through an atomic Redis locking mechanism. Built with the MERN stack (MongoDB, Express, React, Node.js) and Redis.
 
@@ -13,7 +12,7 @@ This application uses a hybrid storage approach to ensure maximum performance an
 - **Backend (API):** Node.js & Express.js. Acts as the orchestrator for authentication, transaction locking, and database reads/writes.
 - **Persistent Storage (MongoDB):** The single source of truth for Users, Events, permanent Bookings, and Waitlist queues.
 - **Concurrency Engine (Redis):** In-memory data store used specifically for **Atomic Locks** (`SET NX EX`). When thousands of users click a seat simultaneously, Redis guarantees only one request succeeds, temporarily locking the seat for 10 minutes during checkout.
-- **Email Delivery:** Nodemailer handles SMTP delivery for OTP verification and automated e-ticket dispatch (with generated QR code attachments).
+- **Email Delivery:** Resend HTTP API handles email delivery for OTP verification and automated e-ticket dispatch (with generated QR code attachments). Switched from Nodemailer SMTP to HTTP-based API because Render's free tier blocks outbound SMTP ports.
 
 ## 📂 Folder Structure
 
@@ -23,9 +22,9 @@ Ticket Booking System/
 ├── backend/                  # Node.js Express Backend
 │   ├── models/               # Mongoose DB Schemas (User, Event, Booking, Waitlist)
 │   ├── routes/               # API Endpoints (auth, booking, events, admin, waitlist)
-│   ├── utils/                # Helper functions (email.js for Nodemailer & QR codes)
+│   ├── utils/                # Helper functions (email.js for Resend HTTP API & QR codes)
 │   ├── server.js             # Entry point, Middleware, & Database connections
-│   └── .env                  # Backend Secrets (Mongo URI, Redis URL, SMTP Credentials)
+│   └── .env                  # Backend Secrets (Mongo URI, Redis URL, Resend API Key)
 │
 ├── frontend/                 # React.js Frontend (Vite)
 │   ├── src/
@@ -92,11 +91,15 @@ MONGO_URI=mongodb://localhost:27017/ticket_booking
 REDIS_URL=redis://127.0.0.1:6379
 JWT_SECRET=super_secret_booking_key_12345
 
-EMAIL_USER=your_gmail@gmail.com
-EMAIL_PASS=your_gmail_app_password
+# Email Delivery (Resend HTTP API)
+# Sign up at https://resend.com and create an API key
+RESEND_API_KEY=re_your_api_key_here
 
-
+# Frontend URL (for waitlist email links)
+FRONTEND_URL=http://localhost:5173
 ```
+
+> **Note:** This project originally used Nodemailer with Gmail SMTP for email delivery. It was migrated to **Resend's HTTP API** because Render's free tier blocks outbound SMTP ports (465, 587). The HTTP API bypasses this restriction entirely.
 
 ## 🏗️ Database Schema (MongoDB)
 
@@ -130,7 +133,7 @@ EMAIL_PASS=your_gmail_app_password
 ## 🌐 API Documentation
 
 ### Auth Endpoints
-- `POST /api/auth/send-otp` - Send login OTP to email (Uses real Nodemailer).
+- `POST /api/auth/send-otp` - Send login OTP to email (Uses Resend HTTP API).
 - `POST /api/auth/verify-otp` - Verify OTP and receive JWT.
 - `POST /api/auth/demo-login` - Instant one-click login for 'Organiser', 'Customer', or 'Admin'.
 
@@ -172,4 +175,18 @@ The system automatically handles cancellations without manual intervention.
 1. **Queueing**: Users join a MongoDB Waitlist collection for a sold-out event.
 2. **Cancellation Trigger**: When a user cancels their `Booking`, the system immediately queries the Waitlist collection, sorting by `joinedAt: 1` to find the oldest entry.
 3. **Offer Generation**: The system changes that waitlisted user's status to `OFFERED` and generates a secure, 15-minute temporary offer token in Redis (`SET waitlist_offer:token ... EX 900`).
-4. **Fulfillment**: An email is dispatched with a unique checkout link containing the token, allowing the waitlisted user 15 minutes to claim the freshly opened seat.
+4. **Fulfillment**: An email is dispatched via Resend HTTP API with a unique checkout link containing the token, allowing the waitlisted user 15 minutes to claim the freshly opened seat.
+
+## 🌍 Deployment
+
+This project is deployed using a split architecture:
+
+| Component | Platform | URL |
+|-----------|----------|-----|
+| **Frontend** | Vercel | [ticket-booking-system-ten-xi.vercel.app](https://ticket-booking-system-ten-xi.vercel.app) |
+| **Backend** | Render | [ticket-booking-system-mtoe.onrender.com](https://ticket-booking-system-mtoe.onrender.com) |
+| **Database** | MongoDB Atlas | Cloud-hosted (Mumbai region) |
+| **Cache/Locks** | Upstash Redis | Serverless Redis with TLS |
+| **Email** | Resend | HTTP API (replaced SMTP due to Render port restrictions) |
+
+> **Note:** Render's free tier puts the backend to sleep after 15 minutes of inactivity. The first request after sleep may take ~30 seconds to wake up.
