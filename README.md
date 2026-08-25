@@ -24,14 +24,14 @@ Ticket Booking System/
 │   ├── server.js             # Entry point, Middleware, & Database connections
 │   └── .env                  # Backend Secrets (Mongo URI, Redis URL, SMTP Credentials)
 │
-└── backend/frontend/         # React.js Frontend (Vite)
-    ├── src/
+├── frontend/                 # React.js Frontend (Vite)
+│   ├── src/
     │   ├── api/              # Axios instance with automatic JWT Header attachment
     │   ├── components/       # Reusable UI components (Navbar)
     │   ├── pages/            # View Controllers (Catalog, SeatMap, Organiser, Admin, Login)
-    │   ├── App.jsx           # React Router configuration
-    │   └── index.css         # Global Tailwind styles & Custom Animations
-    └── package.json          # Frontend dependencies
+│   ├── App.jsx           # React Router configuration
+│   └── index.css         # Global Tailwind styles & Custom Animations
+└── package.json          # Frontend dependencies
 ```
 
 ## 🚀 Setup Guide
@@ -66,7 +66,7 @@ Ticket Booking System/
 
 1. Navigate to the frontend directory:
    ```bash
-   cd backend/frontend
+   cd frontend
    ```
 2. Install dependencies:
    ```bash
