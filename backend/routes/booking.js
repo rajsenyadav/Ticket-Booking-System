@@ -8,7 +8,11 @@ const User = require('../models/User');
 const { sendEmail, sendEmailWithAttachment } = require('../utils/email');
 
 const router = express.Router();
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+const redis = new Redis(redisUrl, {
+    tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+    maxRetriesPerRequest: 3
+});
 
 // Middleware to verify JWT and check if user is a Customer
 const verifyCustomer = (req, res, next) => {
@@ -189,7 +193,7 @@ router.post('/cancel', verifyCustomer, async (req, res) => {
             // Step 4: Email the special 15-min checkout link to this user!
             const email = nextInLine.userId.email;
             if (email) {
-                const checkoutUrl = `http://localhost:5173/checkout?token=${offerToken}`;
+                const checkoutUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout?token=${offerToken}`;
                 const htmlContent = `
                     <h2>Good News! A seat opened up!</h2>
                     <p>A seat (${booking.seatId}) is now available for the event you waitlisted for.</p>

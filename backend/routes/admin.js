@@ -8,7 +8,11 @@ const Booking = require('../models/Booking');
 const Waitlist = require('../models/Waitlist');
 
 const router = express.Router();
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+const redis = new Redis(redisUrl, {
+    tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+    maxRetriesPerRequest: 3
+});
 
 // Middleware to verify JWT and check if user is an Admin
 const verifyAdmin = (req, res, next) => {

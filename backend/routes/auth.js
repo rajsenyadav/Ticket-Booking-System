@@ -6,7 +6,11 @@ const { sendEmail } = require('../utils/email');
 
 const router = express.Router();
 // Create Redis client (assumes REDIS_URL is in .env)
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+const redis = new Redis(redisUrl, {
+    tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+    maxRetriesPerRequest: 3
+});
 
 // ----------------------------------------------------
 // 1. Send OTP (Passwordless Login)
